@@ -1,97 +1,93 @@
-import { MapPin, Satellite } from "lucide-react";
+import { MapContainer, TileLayer, Polygon, Popup } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
 
-export default function DashboardSatelliteMonitoring({
-  fields,
-  selectedFieldId,
-  onSelectField,
-}) {
-  const selectedField =
-    fields.find((field) => field.id === selectedFieldId) || fields[0];
+const fields = [
+  {
+    id: "A-01",
+    crop: "Wheat",
+    status: "Healthy",
+    moisture: 78,
+    color: "#2c694e",
+    positions: [
+      [26.9188, 75.7772],
+      [26.9194, 75.7801],
+      [26.9181, 75.7828],
+      [26.9157, 75.7821],
+      [26.9146, 75.7794],
+      [26.9161, 75.7768],
+    ],
+  },
+  {
+    id: "A-02",
+    crop: "Mustard",
+    status: "High Stress",
+    moisture: 28,
+    color: "#ba1a1a",
+    positions: [
+      [26.9118, 75.7876],
+      [26.9123, 75.7904],
+      [26.9108, 75.7932],
+      [26.9082, 75.7924],
+      [26.9074, 75.7896],
+      [26.9091, 75.7872],
+    ],
+  },
+  {
+    id: "B-01",
+    crop: "Barley",
+    status: "Moderate Stress",
+    moisture: 49,
+    color: "#d97706",
+    positions: [
+      [26.9185, 75.7986],
+      [26.9191, 75.8017],
+      [26.9178, 75.8044],
+      [26.9152, 75.8038],
+      [26.9143, 75.8009],
+      [26.9159, 75.7982],
+    ],
+  },
+];
 
+export default function DashboardSatelliteMonitoring() {
   return (
-    <div className="bg-white rounded-xl border border-border-gray shadow-[0px_1px_3px_rgba(0,0,0,0.05)] flex flex-col h-[520px] overflow-hidden">
-      <div className="relative flex-1 bg-[#e9eee9] flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center mx-auto shadow-sm border border-[#eeeeec]">
-            <Satellite className="w-6 h-6 text-primary-green" />
-          </div>
+    <div className="relative h-[420px] w-full overflow-hidden rounded-xl border border-[#eeeeec]">
+      <MapContainer
+        center={[26.9124, 75.7903]}
+        zoom={14}
+        scrollWheelZoom={true}
+        className="h-full w-full"
+      >
+        <TileLayer
+          attribution="&copy; OpenStreetMap contributors"
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
 
-          <h3 className="text-[15px] font-bold text-primary-green mt-4">
-            Satellite Field Monitoring
-          </h3>
-
-          <p className="text-[12px] text-text-muted mt-1">
-            Sentinel-1 and Sentinel-2 field visualization
-          </p>
-
-          <div className="flex items-center justify-center gap-2 mt-5">
-            {fields.map((field) => (
-              <button
-                key={field.id}
-                onClick={() => onSelectField(field.id)}
-                className={`px-3 py-2 rounded-lg text-[12px] font-semibold border transition-colors ${
-                  selectedFieldId === field.id
-                    ? "bg-primary-green text-white border-primary-green"
-                    : "bg-white text-text-muted border-[#eeeeec]"
-                }`}
-              >
-                {field.id}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-[#f9f9f7] px-5 py-3 border-t border-[#eeeeec] flex justify-between items-center shrink-0">
-        <div className="flex items-center gap-2">
-          <MapPin className="w-4 h-4 text-[#717973]" />
-
-          <div>
-            <span className="text-[13px] font-semibold text-text-dark">
-              {selectedField.name}
-            </span>
-
-            <span className="text-[11px] text-text-muted ml-2">
-              • Crop:{" "}
-              <strong className="font-semibold text-text-dark">
-                {selectedField.cropType}
-              </strong>
-            </span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4 text-[12px] font-mono">
-          <div className="flex flex-col items-end">
-            <span className="text-[10px] text-text-muted leading-none">
-              TOTAL AREA
-            </span>
-
-            <span className="text-text-dark font-bold mt-1">
-              {selectedField.areaHa} ha
-            </span>
-          </div>
-
-          <div className="w-px h-8 bg-[#eeeeec]"></div>
-
-          <div className="flex flex-col items-end">
-            <span className="text-[10px] text-text-muted leading-none">
-              MOISTURE LEVEL
-            </span>
-
-            <span
-              className={`font-bold mt-1 ${
-                selectedField.status === "Healthy"
-                  ? "text-primary-green"
-                  : selectedField.status === "Moderate"
-                    ? "text-accent-amber"
-                    : "text-accent-red"
-              }`}
-            >
-              {selectedField.moistureLevel}%
-            </span>
-          </div>
-        </div>
-      </div>
+        {fields.map((field) => (
+          <Polygon
+            key={field.id}
+            positions={field.positions}
+            pathOptions={{
+              color: field.color,
+              fillColor: field.color,
+              fillOpacity: 0.45,
+              weight: 3,
+            }}
+          >
+            <Popup>
+              <div>
+                <strong>Field {field.id}</strong>
+                <br />
+                Crop: {field.crop}
+                <br />
+                Status: {field.status}
+                <br />
+                Moisture: {field.moisture}%
+              </div>
+            </Popup>
+          </Polygon>
+        ))}
+      </MapContainer>
     </div>
   );
 }
