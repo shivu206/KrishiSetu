@@ -143,32 +143,3 @@ export const mockMetrics = (fields) => {
     },
   ];
 };
-
-export const recentSatellitePasses = [
-  {
-    date: "JUL 04, 2026",
-    sensor: "SENTINEL-2",
-    cloudCover: 1.2,
-    ndviAverage: 0.72,
-    status: "optimal",
-  },
-  {
-    date: "JUL 03, 2026",
-    sensor: "SENTINEL-1",
-    polarization: "VV/VH",
-    status: "optimal",
-  },
-  {
-    date: "JUN 29, 2026",
-    sensor: "SENTINEL-2",
-    cloudCover: 8.4,
-    ndviAverage: 0.69,
-    status: "optimal",
-  },
-  {
-    date: "JUN 28, 2026",
-    sensor: "SENTINEL-1",
-    polarization: "VV/VH",
-    status: "optimal",
-  },
-];

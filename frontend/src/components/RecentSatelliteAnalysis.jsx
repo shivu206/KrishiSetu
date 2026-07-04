@@ -1,7 +1,21 @@
+import { useEffect, useState } from "react";
 import { Cloud, Layers, Radio } from "lucide-react";
-import { recentSatellitePasses } from "../constants/dashboardData";
+
+import { getSatelliteAnalysis } from "../services/api";
 
 export default function RecentSatelliteAnalysis() {
+  const [satelliteAnalyses, setSatelliteAnalyses] = useState([]);
+
+  useEffect(() => {
+    getSatelliteAnalysis()
+      .then((analyses) => {
+        setSatelliteAnalyses(analyses);
+      })
+      .catch((error) => {
+        console.error("Satellite API Error:", error);
+      });
+  }, []);
+
   return (
     <div className="bg-white rounded-xl border border-border-gray shadow-[0px_1px_3px_rgba(0,0,0,0.05)] p-5 flex flex-col h-full min-h-[400px]">
       <div className="mb-4">
@@ -16,7 +30,7 @@ export default function RecentSatelliteAnalysis() {
 
       <div className="flex-1 overflow-x-auto">
         <div className="flex flex-col gap-3">
-          {recentSatellitePasses.map((pass, index) => {
+          {satelliteAnalyses.map((pass, index) => {
             const isSentinel1 = pass.sensor === "SENTINEL-1";
 
             return (

@@ -9,15 +9,11 @@ import VegetationTrends from "../../components/VegetationTrends";
 import IrrigationAdvisory from "../../components/IrrigationAdvisory";
 import RecentSatelliteAnalysis from "../../components/RecentSatelliteAnalysis";
 
-import {
-  mockFields,
-  mockMetrics,
-} from "../../constants/dashboardData";
+import { mockMetrics } from "../../constants/dashboardData";
 
-function Dashboard() {
+function Dashboard({ fields }) {
   const [selectedFieldId, setSelectedFieldId] = useState("A-01");
 
-  const fields = mockFields;
   const metrics = mockMetrics(fields);
 
   return (
