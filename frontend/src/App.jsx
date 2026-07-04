@@ -1,11 +1,18 @@
+import { useState } from "react";
+
+import Sidebar from "./components/layout/Sidebar";
+import Dashboard from "./pages/Dashboard/Dashboard";
+
 function App() {
+  const [activeTab, setActiveTab] = useState("dashboard");
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-green-50">
-      <h1 className="text-5xl font-bold text-green-700">
-        🌱 KrishiSetu
-      </h1>
+    <div className="flex min-h-screen bg-[#f7f7f5]">
+      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+
+      <Dashboard />
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

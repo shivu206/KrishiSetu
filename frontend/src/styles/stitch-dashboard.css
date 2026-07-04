@@ -1,0 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Custom palette matching KrishiSetu Stitch guidelines */
+  --color-primary-green: #012d1d;
+  --color-secondary-green: #2c694e;
+  --color-light-bg: #f9f9f7;
+  --color-panel-bg: #ffffff;
+  --color-border-gray: #eeeeec;
+  --color-text-dark: #1a1c1b;
+  --color-text-muted: #414844;
+  --color-accent-amber: #d97706;
+  --color-accent-red: #ba1a1a;
+  --color-alert-border: #ba1a1a;
+
+  /* Additional Tailwind v4 theme settings */
+  --animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Custom global styles to match Stitch aesthetic */
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-light-bg);
+  color: var(--color-text-dark);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* High-information density scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #e2e3e1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #dadad8;
+}

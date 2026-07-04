@@ -1,1 +1,50 @@
 @import "tailwindcss";
+
+@theme {
+  --color-primary-green: #123d2c;
+  --color-secondary-green: #2c694e;
+
+  --color-text-dark: #1a1c1b;
+  --color-text-muted: #717973;
+
+  --color-border-gray: #eeeeec;
+
+  --color-accent-red: #ba1a1a;
+  --color-accent-amber: #d97706;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-width: 100%;
+  min-height: 100%;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  background: #f7f7f5;
+  color: #1a1c1b;
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
