@@ -26,6 +26,15 @@ from processing.crop_predictor import (
     predict_crop
 )
 
+from processing.phenology_detector import (
+    detect_growth_stage
+)
+
+from processing.moisture_stress_detector import (
+    detect_moisture_stress
+)
+
+
 
 SATELLITE_DATA_DIR = (
     Path(__file__).resolve().parent
@@ -239,6 +248,17 @@ def analyze_field(
         ]
     )
 
+    phenology_analysis = detect_growth_stage(
+    fused_observations
+    )
+
+    moisture_stress_analysis = (
+    detect_moisture_stress(
+        fused_observations,
+        phenology_analysis
+    )
+    )
+
     return {
         "analysis_status": "crop_analyzed",
         "start_date": start_date.isoformat(),
@@ -253,6 +273,12 @@ def analyze_field(
         "crop_prediction": crop_prediction,
         "crop_prediction_status": (
             "baseline_model"
+        ),
+        "phenology_analysis": (
+            phenology_analysis
+        ),
+        "moisture_stress_analysis": (
+            moisture_stress_analysis
         ),
         "observation_count": len(
             fused_observations
