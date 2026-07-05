@@ -18,6 +18,10 @@ from processing.temporal_fusion import (
     fuse_satellite_timeseries
 )
 
+from processing.vegetation_detector import (
+    detect_vegetation_signature
+)
+
 
 SATELLITE_DATA_DIR = (
     Path(__file__).resolve().parent
@@ -158,6 +162,70 @@ def get_fused_satellite_timeseries(
             if end_date is not None
             else None
         ),
+        "observation_count": len(
+            fused_observations
+        ),
+        "radar_supported_count": sum(
+            observation["radar_available"]
+            for observation in fused_observations
+        ),
+        "observations": fused_observations
+    }
+
+@app.get("/api/analysis")
+def analyze_field(
+    start_date: date,
+    end_date: date | None = None
+):
+    sentinel2_observations = (
+        process_sentinel2_timeseries(
+            SENTINEL2_DIRECTORY,
+            start_date=start_date,
+            end_date=end_date
+        )
+    )
+
+    sentinel1_observations = (
+        process_sentinel1_timeseries(
+            SENTINEL1_DIRECTORY,
+            start_date=start_date,
+            end_date=end_date
+        )
+    )
+
+    fused_observations = fuse_satellite_timeseries(
+        sentinel2_observations,
+        sentinel1_observations
+    )
+
+    vegetation_analysis = (
+        detect_vegetation_signature(
+            fused_observations
+        )
+    )
+
+    if not vegetation_analysis["vegetation_detected"]:
+        return {
+            "analysis_status": "stopped",
+            "reason": vegetation_analysis["status"],
+            "start_date": start_date.isoformat(),
+            "end_date": (
+                end_date.isoformat()
+                if end_date is not None
+                else None
+            ),
+            "vegetation_analysis": vegetation_analysis
+        }
+
+    return {
+        "analysis_status": "vegetation_detected",
+        "start_date": start_date.isoformat(),
+        "end_date": (
+            end_date.isoformat()
+            if end_date is not None
+            else None
+        ),
+        "vegetation_analysis": vegetation_analysis,
         "observation_count": len(
             fused_observations
         ),
