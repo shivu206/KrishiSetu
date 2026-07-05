@@ -22,6 +22,10 @@ from processing.vegetation_detector import (
     detect_vegetation_signature
 )
 
+from processing.crop_predictor import (
+    predict_crop
+)
+
 
 SATELLITE_DATA_DIR = (
     Path(__file__).resolve().parent
@@ -172,6 +176,7 @@ def get_fused_satellite_timeseries(
         "observations": fused_observations
     }
 
+
 @app.get("/api/analysis")
 def analyze_field(
     start_date: date,
@@ -204,7 +209,9 @@ def analyze_field(
         )
     )
 
-    if not vegetation_analysis["vegetation_detected"]:
+    if not vegetation_analysis[
+        "vegetation_detected"
+    ]:
         return {
             "analysis_status": "stopped",
             "reason": vegetation_analysis["status"],
@@ -214,18 +221,39 @@ def analyze_field(
                 if end_date is not None
                 else None
             ),
-            "vegetation_analysis": vegetation_analysis
+            "vegetation_analysis": (
+                vegetation_analysis
+            )
         }
 
+    latest_observation = (
+        fused_observations[-1]
+    )
+
+    crop_prediction = predict_crop(
+        ndvi_mean=latest_observation[
+            "ndvi_mean"
+        ],
+        ndmi_mean=latest_observation[
+            "ndmi_mean"
+        ]
+    )
+
     return {
-        "analysis_status": "vegetation_detected",
+        "analysis_status": "crop_analyzed",
         "start_date": start_date.isoformat(),
         "end_date": (
             end_date.isoformat()
             if end_date is not None
             else None
         ),
-        "vegetation_analysis": vegetation_analysis,
+        "vegetation_analysis": (
+            vegetation_analysis
+        ),
+        "crop_prediction": crop_prediction,
+        "crop_prediction_status": (
+            "baseline_model"
+        ),
         "observation_count": len(
             fused_observations
         ),

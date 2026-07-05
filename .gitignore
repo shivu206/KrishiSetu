@@ -24,3 +24,7 @@ dist/
 .idea/
 .DS_Store
 Thumbs.db
+
+backend/datasets/
+# Trained ML model artifacts
+backend/models/*.joblib
