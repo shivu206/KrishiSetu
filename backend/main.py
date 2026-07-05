@@ -1,12 +1,46 @@
+from datetime import date
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from data import fields, satellite_analyses
 
+from processing.sentinel2_timeseries import (
+    process_sentinel2_timeseries
+)
+
+from processing.sentinel1_timeseries import (
+    process_sentinel1_timeseries
+)
+
+from processing.temporal_fusion import (
+    fuse_satellite_timeseries
+)
+
+
+SATELLITE_DATA_DIR = (
+    Path(__file__).resolve().parent
+    / "satellite_data"
+)
+
+SENTINEL2_DIRECTORY = (
+    SATELLITE_DATA_DIR
+    / "sentinel2"
+)
+
+SENTINEL1_DIRECTORY = (
+    SATELLITE_DATA_DIR
+    / "sentinel1"
+)
+
 
 app = FastAPI(
     title="KrishiSetu API",
-    description="Satellite-driven crop monitoring and irrigation advisory backend",
+    description=(
+        "Satellite-driven crop monitoring "
+        "and irrigation advisory backend"
+    ),
     version="1.0.0"
 )
 
@@ -42,4 +76,94 @@ def get_fields():
 def get_satellite_analysis():
     return {
         "analyses": satellite_analyses
+    }
+
+
+@app.get("/api/sentinel2/timeseries")
+def get_sentinel2_timeseries(
+    start_date: date,
+    end_date: date | None = None
+):
+    observations = process_sentinel2_timeseries(
+        SENTINEL2_DIRECTORY,
+        start_date=start_date,
+        end_date=end_date
+    )
+
+    return {
+        "start_date": start_date.isoformat(),
+        "end_date": (
+            end_date.isoformat()
+            if end_date is not None
+            else None
+        ),
+        "observation_count": len(observations),
+        "observations": observations
+    }
+
+
+@app.get("/api/sentinel1/timeseries")
+def get_sentinel1_timeseries(
+    start_date: date,
+    end_date: date | None = None
+):
+    observations = process_sentinel1_timeseries(
+        SENTINEL1_DIRECTORY,
+        start_date=start_date,
+        end_date=end_date
+    )
+
+    return {
+        "start_date": start_date.isoformat(),
+        "end_date": (
+            end_date.isoformat()
+            if end_date is not None
+            else None
+        ),
+        "observation_count": len(observations),
+        "observations": observations
+    }
+
+
+@app.get("/api/satellite/timeseries")
+def get_fused_satellite_timeseries(
+    start_date: date,
+    end_date: date | None = None
+):
+    sentinel2_observations = (
+        process_sentinel2_timeseries(
+            SENTINEL2_DIRECTORY,
+            start_date=start_date,
+            end_date=end_date
+        )
+    )
+
+    sentinel1_observations = (
+        process_sentinel1_timeseries(
+            SENTINEL1_DIRECTORY,
+            start_date=start_date,
+            end_date=end_date
+        )
+    )
+
+    fused_observations = fuse_satellite_timeseries(
+        sentinel2_observations,
+        sentinel1_observations
+    )
+
+    return {
+        "start_date": start_date.isoformat(),
+        "end_date": (
+            end_date.isoformat()
+            if end_date is not None
+            else None
+        ),
+        "observation_count": len(
+            fused_observations
+        ),
+        "radar_supported_count": sum(
+            observation["radar_available"]
+            for observation in fused_observations
+        ),
+        "observations": fused_observations
     }
