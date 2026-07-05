@@ -34,6 +34,13 @@ from processing.moisture_stress_detector import (
     detect_moisture_stress
 )
 
+from processing.weather_service import (
+    fetch_weather_data
+)
+
+from processing.water_deficit_advisor import (
+    estimate_water_deficit
+)
 
 
 SATELLITE_DATA_DIR = (
@@ -189,6 +196,8 @@ def get_fused_satellite_timeseries(
 @app.get("/api/analysis")
 def analyze_field(
     start_date: date,
+    latitude: float,
+    longitude: float,
     end_date: date | None = None
 ):
     sentinel2_observations = (
@@ -230,6 +239,8 @@ def analyze_field(
                 if end_date is not None
                 else None
             ),
+            "latitude": latitude,
+            "longitude": longitude,
             "vegetation_analysis": (
                 vegetation_analysis
             )
@@ -249,14 +260,41 @@ def analyze_field(
     )
 
     phenology_analysis = detect_growth_stage(
-    fused_observations
+        fused_observations
     )
 
     moisture_stress_analysis = (
-    detect_moisture_stress(
-        fused_observations,
-        phenology_analysis
+        detect_moisture_stress(
+            fused_observations,
+            phenology_analysis
+        )
     )
+
+    analysis_date = date.fromisoformat(
+        latest_observation["date"]
+    )
+
+    weather_analysis = fetch_weather_data(
+        latitude=latitude,
+        longitude=longitude,
+        analysis_date=analysis_date
+    )
+
+    water_deficit_analysis = (
+        estimate_water_deficit(
+            growth_stage=phenology_analysis[
+                "growth_stage"
+            ],
+            stress_level=moisture_stress_analysis[
+                "stress_level"
+            ],
+            reference_et_mm_8day=weather_analysis[
+                "reference_et_mm_8day"
+            ],
+            rainfall_mm_8day=weather_analysis[
+                "rainfall_mm_8day"
+            ]
+        )
     )
 
     return {
@@ -266,6 +304,11 @@ def analyze_field(
             end_date.isoformat()
             if end_date is not None
             else None
+        ),
+        "latitude": latitude,
+        "longitude": longitude,
+        "analysis_date": (
+            analysis_date.isoformat()
         ),
         "vegetation_analysis": (
             vegetation_analysis
@@ -279,6 +322,12 @@ def analyze_field(
         ),
         "moisture_stress_analysis": (
             moisture_stress_analysis
+        ),
+        "weather_analysis": (
+            weather_analysis
+        ),
+        "water_deficit_analysis": (
+            water_deficit_analysis
         ),
         "observation_count": len(
             fused_observations
