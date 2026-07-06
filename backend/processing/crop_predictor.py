@@ -28,6 +28,9 @@ CROP_LABELS = {
 }
 
 
+FALLOW_LABEL = 4
+
+
 _model_package = None
 
 
@@ -48,9 +51,9 @@ def load_crop_model():
     return _model_package
 
 
-def predict_crop(
-    ndvi_mean,
-    ndmi_mean
+def run_spectral_baseline_prediction(
+    current_ndvi,
+    current_ndmi
 ):
     model_package = load_crop_model()
 
@@ -58,8 +61,8 @@ def predict_crop(
 
     features = np.array(
         [[
-            ndvi_mean,
-            ndmi_mean
+            current_ndvi,
+            current_ndmi
         ]],
         dtype=np.float32
     )
@@ -83,8 +86,133 @@ def predict_crop(
             "Unknown"
         ),
         "confidence": confidence,
-        "model_type": "Random Forest",
+        "model_type": (
+            "Experimental Random Forest "
+            "Spectral Baseline"
+        ),
+        "inference_basis": (
+            "latest_observation_ndvi_ndmi"
+        ),
         "feature_names": model_package[
             "feature_names"
         ]
+    }
+
+
+def predict_crop(
+    temporal_features,
+    vegetation_analysis
+):
+    if (
+        temporal_features.get("status")
+        != "temporal_features_extracted"
+    ):
+        return {
+            "crop_label": None,
+            "crop_name": "Unknown",
+            "confidence": None,
+            "prediction_status": (
+                "insufficient_temporal_data"
+            ),
+            "inference_summary": (
+                "Crop inference requires a valid "
+                "satellite temporal feature set."
+            ),
+            "baseline_prediction": None
+        }
+
+    if not vegetation_analysis.get(
+        "vegetation_detected",
+        False
+    ):
+        return {
+            "crop_label": None,
+            "crop_name": "No Active Crop Detected",
+            "confidence": None,
+            "prediction_status": (
+                "no_vegetation_signature"
+            ),
+            "inference_summary": (
+                "Crop classification was not run "
+                "because no persistent vegetation "
+                "signature was detected."
+            ),
+            "baseline_prediction": None
+        }
+
+    baseline_prediction = (
+        run_spectral_baseline_prediction(
+            current_ndvi=temporal_features[
+                "ndvi_current"
+            ],
+            current_ndmi=temporal_features[
+                "ndmi_current"
+            ]
+        )
+    )
+
+    baseline_label = baseline_prediction[
+        "crop_label"
+    ]
+
+    vegetation_persistence = (
+        temporal_features[
+            "vegetation_persistence"
+        ]
+    )
+
+    peak_ndvi = temporal_features[
+        "ndvi_max"
+    ]
+
+    temporal_crop_signature = (
+        vegetation_persistence >= 0.50
+        and peak_ndvi >= 0.40
+    )
+
+    if (
+        baseline_label == FALLOW_LABEL
+        and temporal_crop_signature
+    ):
+        return {
+            "crop_label": None,
+            "crop_name": "Crop Type Uncertain",
+            "confidence": None,
+            "prediction_status": (
+                "temporal_baseline_conflict"
+            ),
+            "inference_summary": (
+                "Persistent vegetation was detected "
+                "across the satellite time series, "
+                "but the experimental latest-"
+                "observation spectral baseline "
+                "predicted fallow. Crop identity "
+                "is therefore not reported."
+            ),
+            "baseline_prediction": (
+                baseline_prediction
+            )
+        }
+
+    return {
+        "crop_label": baseline_prediction[
+            "crop_label"
+        ],
+        "crop_name": baseline_prediction[
+            "crop_name"
+        ],
+        "confidence": baseline_prediction[
+            "confidence"
+        ],
+        "prediction_status": (
+            "spectral_baseline_temporally_consistent"
+        ),
+        "inference_summary": (
+            "The experimental latest-observation "
+            "spectral baseline is consistent with "
+            "the detected temporal vegetation state."
+        ),
+        "baseline_prediction": (
+            baseline_prediction
+        )
     }

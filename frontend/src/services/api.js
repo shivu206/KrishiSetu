@@ -1,25 +1,35 @@
-const API_BASE_URL = "http://127.0.0.1:8000/api";
+const API_BASE_URL = "http://127.0.0.1:8000";
 
-export async function getFields() {
-  const response = await fetch(`${API_BASE_URL}/fields`);
+export async function getFieldAnalysis({
+  latitude,
+  longitude,
+  sowingDate,
+}) {
+  const parameters = new URLSearchParams({
+    latitude: String(latitude),
+    longitude: String(longitude),
+    sowing_date: sowingDate,
+  });
+
+  const response = await fetch(
+    `${API_BASE_URL}/api/analysis?${parameters.toString()}`,
+  );
 
   if (!response.ok) {
-    throw new Error("Failed to fetch field data");
+    let message = "Field analysis failed.";
+
+    try {
+      const errorData = await response.json();
+
+      if (errorData.detail) {
+        message = errorData.detail;
+      }
+    } catch {
+      message = `Field analysis failed with status ${response.status}.`;
+    }
+
+    throw new Error(message);
   }
 
-  const data = await response.json();
-
-  return data.fields;
-}
-
-export async function getSatelliteAnalysis() {
-  const response = await fetch(`${API_BASE_URL}/satellite-analysis`);
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch satellite analysis");
-  }
-
-  const data = await response.json();
-
-  return data.analyses;
+  return response.json();
 }

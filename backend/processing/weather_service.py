@@ -58,9 +58,7 @@ def build_fallback_weather_data(
 ):
     return {
         "status": "weather_fallback_used",
-        "source": (
-            "Last verified weather observation"
-        ),
+        "source": "Configured fallback weather values",
         "latitude": float(latitude),
         "longitude": float(longitude),
         "start_date": start_date.isoformat(),
@@ -76,7 +74,7 @@ def build_fallback_weather_data(
                 "reference_et_mm_8day"
             ]
         ),
-        "weather_observation_count": 8,
+        "weather_observation_count": 0,
         "live_weather_available": False,
         "fallback_reason": type(error).__name__
     }
@@ -170,7 +168,12 @@ def fetch_weather_data(
             "live_weather_available": True
         }
 
-    except requests.RequestException as error:
+    except (
+        requests.RequestException,
+        KeyError,
+        TypeError,
+        ValueError
+    ) as error:
         return build_fallback_weather_data(
             latitude=latitude,
             longitude=longitude,

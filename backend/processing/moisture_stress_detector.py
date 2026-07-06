@@ -1,70 +1,43 @@
-import numpy as np
-
-
 def detect_moisture_stress(
-    observations,
+    temporal_features,
     phenology_analysis
 ):
-    if len(observations) < 3:
+    if (
+        temporal_features.get("status")
+        != "temporal_features_extracted"
+    ):
         return {
             "stress_level": "unknown",
             "status": "insufficient_observations"
         }
 
-    recent_observations = observations[-3:]
+    current_ndmi = temporal_features[
+        "ndmi_current"
+    ]
 
-    recent_ndmi_values = np.array(
-        [
-            observation["ndmi_mean"]
-            for observation in recent_observations
-        ],
-        dtype=np.float32
-    )
+    mean_ndmi = temporal_features[
+        "ndmi_mean"
+    ]
 
-    current_ndmi = float(
-        recent_ndmi_values[-1]
-    )
+    ndmi_trend = temporal_features[
+        "ndmi_recent_trend"
+    ]
 
-    mean_recent_ndmi = float(
-        np.mean(recent_ndmi_values)
-    )
-
-    ndmi_trend = float(
-        recent_ndmi_values[-1]
-        - recent_ndmi_values[0]
-    )
-
-    recent_ndvi_trend = float(
-        phenology_analysis[
-            "recent_ndvi_trend"
-        ]
-    )
+    recent_ndvi_trend = temporal_features[
+        "ndvi_recent_trend"
+    ]
 
     growth_stage = phenology_analysis[
         "growth_stage"
     ]
 
-    radar_observations = [
-        observation
-        for observation in recent_observations
-        if observation["radar_available"]
+    radar_supported = temporal_features[
+        "radar_supported"
     ]
 
-    radar_supported = (
-        len(radar_observations) > 0
-    )
-
-    radar_ratio_mean = None
-
-    if radar_supported:
-        radar_ratio_mean = float(
-            np.mean([
-                observation[
-                    "vh_vv_ratio_mean"
-                ]
-                for observation in radar_observations
-            ])
-        )
+    radar_ratio_mean = temporal_features[
+        "radar_ratio_mean"
+    ]
 
     stress_score = 0
 
@@ -74,13 +47,13 @@ def detect_moisture_stress(
     elif current_ndmi < 0.10:
         stress_score += 1
 
-    if ndmi_trend < -0.03:
+    if ndmi_trend < -0.015:
         stress_score += 2
 
     elif ndmi_trend < 0:
         stress_score += 1
 
-    if recent_ndvi_trend < -0.05:
+    if recent_ndvi_trend < -0.025:
         stress_score += 2
 
     elif recent_ndvi_trend < 0:
@@ -116,7 +89,7 @@ def detect_moisture_stress(
         "stress_score": stress_score,
         "growth_stage": growth_stage,
         "current_ndmi": current_ndmi,
-        "mean_recent_ndmi": mean_recent_ndmi,
+        "mean_ndmi": mean_ndmi,
         "recent_ndmi_trend": ndmi_trend,
         "recent_ndvi_trend": recent_ndvi_trend,
         "radar_supported": radar_supported,

@@ -1,20 +1,16 @@
-import { useEffect, useState } from "react";
-import { Cloud, Layers, Radio } from "lucide-react";
+import {
+  Layers,
+  Radio,
+} from "lucide-react";
 
-import { getSatelliteAnalysis } from "../services/api";
-
-export default function RecentSatelliteAnalysis() {
-  const [satelliteAnalyses, setSatelliteAnalyses] = useState([]);
-
-  useEffect(() => {
-    getSatelliteAnalysis()
-      .then((analyses) => {
-        setSatelliteAnalyses(analyses);
-      })
-      .catch((error) => {
-        console.error("Satellite API Error:", error);
-      });
-  }, []);
+export default function RecentSatelliteAnalysis({
+  analysis,
+}) {
+  const observations = [
+    ...(analysis?.observations ?? []),
+  ]
+    .reverse()
+    .slice(0, 5);
 
   return (
     <div className="bg-white rounded-xl border border-border-gray shadow-[0px_1px_3px_rgba(0,0,0,0.05)] p-5 flex flex-col h-full min-h-[400px]">
@@ -24,103 +20,101 @@ export default function RecentSatelliteAnalysis() {
         </h3>
 
         <p className="text-[12px] text-text-muted mt-0.5">
-          Latest Sentinel-1 and Sentinel-2 processing results
+          Latest fused Sentinel-1 and Sentinel-2
+          observations
         </p>
       </div>
 
-      <div className="flex-1 overflow-x-auto">
+      <div className="flex-1">
         <div className="flex flex-col gap-3">
-          {satelliteAnalyses.map((pass, index) => {
-            const isSentinel1 = pass.sensor === "SENTINEL-1";
-
-            return (
+          {observations.map(
+            (observation, index) => (
               <div
-                key={`${pass.sensor}-${pass.date}-${index}`}
-                className="flex items-center justify-between p-3.5 bg-[#f9f9f7] rounded-lg border border-[#eeeeec] hover:border-text-muted transition-colors"
+                key={`${observation.date}-${index}`}
+                className="flex items-center justify-between p-3.5 bg-[#f9f9f7] rounded-lg border border-[#eeeeec]"
               >
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-emerald-50 text-primary-green">
-                    {isSentinel1 ? (
-                      <Radio className="w-4 h-4" />
-                    ) : (
-                      <Layers className="w-4 h-4" />
-                    )}
+                    <Layers className="w-4 h-4" />
                   </div>
 
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-[13px] font-bold text-text-dark font-mono">
-                        {pass.sensor}
+                        SENTINEL-2
                       </span>
 
-                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-md font-bold uppercase bg-[#e2f4ea] text-primary-green">
-                        {pass.status}
-                      </span>
+                      {observation.radar_available && (
+                        <span className="flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.5 rounded-md font-bold uppercase bg-blue-50 text-blue-700">
+                          <Radio className="w-3 h-3" />
+                          S1 FUSED
+                        </span>
+                      )}
                     </div>
 
                     <span className="text-[11px] font-mono text-text-muted mt-1 block">
-                      Analysis date: {pass.date}
+                      {observation.date}
                     </span>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-6 text-[12px] font-mono">
-                  {isSentinel1 ? (
-                    <>
-                      <div className="flex flex-col items-end">
-                        <span className="text-[10px] text-text-muted leading-none">
-                          POLARIZATION
-                        </span>
+                <div className="flex items-center gap-5 text-[12px] font-mono">
+                  <div className="flex flex-col items-end">
+                    <span className="text-[10px] text-text-muted">
+                      NDVI
+                    </span>
 
-                        <span className="font-bold mt-1.5 text-text-dark">
-                          {pass.polarization}
-                        </span>
-                      </div>
+                    <span className="font-bold mt-1 text-primary-green">
+                      {observation.ndvi_mean?.toFixed(
+                        3,
+                      ) ?? "N/A"}
+                    </span>
+                  </div>
 
-                      <div className="w-px h-8 bg-[#eeeeec]"></div>
+                  <div className="w-px h-8 bg-[#eeeeec]" />
 
-                      <div className="flex flex-col items-end">
-                        <span className="text-[10px] text-text-muted leading-none">
-                          DATA TYPE
-                        </span>
+                  <div className="flex flex-col items-end">
+                    <span className="text-[10px] text-text-muted">
+                      NDMI
+                    </span>
 
-                        <span className="font-bold mt-1.5 text-text-dark">
-                          SAR
-                        </span>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="flex flex-col items-end">
-                        <span className="text-[10px] text-text-muted leading-none">
-                          CLOUD COVER
-                        </span>
+                    <span className="font-bold mt-1 text-blue-600">
+                      {observation.ndmi_mean?.toFixed(
+                        3,
+                      ) ?? "N/A"}
+                    </span>
+                  </div>
 
-                        <span className="font-bold mt-1.5 flex items-center gap-1 text-primary-green">
-                          <Cloud className="w-3.5 h-3.5 shrink-0" />
+                  <div className="w-px h-8 bg-[#eeeeec]" />
 
-                          {pass.cloudCover.toFixed(1)}%
-                        </span>
-                      </div>
+                  <div className="flex flex-col items-end">
+                    <span className="text-[10px] text-text-muted">
+                      VALID PIXELS
+                    </span>
 
-                      <div className="w-px h-8 bg-[#eeeeec]"></div>
-
-                      <div className="flex flex-col items-end">
-                        <span className="text-[10px] text-text-muted leading-none">
-                          AVG NDVI
-                        </span>
-
-                        <span className="font-bold mt-1.5 text-text-dark">
-                          {pass.ndviAverage.toFixed(2)}
-                        </span>
-                      </div>
-                    </>
-                  )}
+                    <span className="font-bold mt-1 text-text-dark">
+                      {observation
+                        .sentinel2_valid_pixels ??
+                        "N/A"}
+                    </span>
+                  </div>
                 </div>
               </div>
-            );
-          })}
+            ),
+          )}
         </div>
+      </div>
+
+      <div className="border-t border-[#eeeeec] mt-4 pt-3 flex justify-between text-[11px] text-text-muted">
+        <span>
+          {analysis?.observation_count ?? 0} optical
+          observations
+        </span>
+
+        <span>
+          {analysis?.radar_supported_count ?? 0} radar
+          supported
+        </span>
       </div>
     </div>
   );

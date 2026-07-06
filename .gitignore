@@ -25,6 +25,14 @@ dist/
 .DS_Store
 Thumbs.db
 
+# Training datasets
 backend/datasets/
+
+# Generated reports
+*.pdf
+
+# Logs
+*.log
+
 # Trained ML model artifacts
 backend/models/*.joblib
