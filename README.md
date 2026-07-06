@@ -600,7 +600,7 @@ KrishiSetu/
 |   |-- requirements.txt
 |   |
 |   |-- models/
-|   |   `-- crop_classifier.joblib
+|   |   `-- Model artifact stored locally
 |   |
 |   `-- processing/
 |       |-- agrifieldnet_loader.py
@@ -724,6 +724,7 @@ Open the local development URL displayed by Vite.
 ## Local Satellite Data
 
 Raw satellite GeoTIFF raster observations are intentionally excluded from the Git repository because satellite imagery files can be large.
+The trained crop classification model artifact is also excluded from the public repository because of its large file size. The backend expects the serialized model at `backend/models/crop_classifier.joblib`.
 
 The backend expects satellite observations under:
 
